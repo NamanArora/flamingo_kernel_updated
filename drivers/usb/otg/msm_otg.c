@@ -1425,6 +1425,9 @@ static void msm_otg_notify_charger(struct msm_otg *motg, unsigned mA)
 	if (motg->cur_power == mA)
 		return;
 
+	if (mA > 0)
+		mA = IDEV_ACA_CHG_MAX;	
+	printk(KERN_INFO "[USB] Current = %d", mA);
 	dev_info(motg->phy.dev, "Avail curr from USB = %u\n", mA);
 
 	/*
