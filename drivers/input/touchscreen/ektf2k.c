@@ -199,13 +199,6 @@ static uint8_t file_fw_data_ofilm[] = {
 #include "eKTF2150_E2_OFilm_V5503.i"  //
 };
 
-/*[Arima5908][43575][poting_chang] 3rd source(Beil) touch driver porting 20140904 begin*/
-static uint8_t file_fw_data_Biel[] = {
-#include "eKTF2150_E2_Biel_V5501.i"  //Biel test
-};
-/*[Arima5908][43575][poting_chang] 20140904 end  */
-
-
 //static uint8_t *file_fw_data= file_fw_data_truly;
 static uint8_t *file_fw_data=NULL;
 //[All][Main][TP][WI40169][thundertang] Add OFilm fw_data in Touch Screen driver. --
@@ -2288,7 +2281,8 @@ printk("[elan_debug] button %x \n", buf[btn_idx]);
 		      	//elan_ktf2k_ts_parse_xy(&buf[idx], &y, &x);  		 
 			     	//printk("[elan_debug] %s, x=%d, y=%d\n",__func__, x , y);
 			    //x = X_RESOLUTION-x;	 
-			    //y = Y_RESOLUTION-y;			     
+			    //y = Y_RESOLUTION-y;			 
+				printk(KERN_INFO "[touch] x=%d y=%d", x,y);    
 						if (!((x<=0) || (y<=0) || (x>=X_RESOLUTION) || (y>=Y_RESOLUTION))) {   
     					input_report_abs(idev, ABS_MT_TRACKING_ID, i);
 							input_report_abs(idev, ABS_MT_TOUCH_MAJOR, 8);
@@ -2860,11 +2854,7 @@ static int elan_ktf2k_ts_probe(struct i2c_client *client,
 	    if (FW_ID == 0x049a)
 		    file_fw_data = file_fw_data_ofilm;
 	    else if (FW_ID == 0x0498)
-	 	   file_fw_data = file_fw_data_truly;
-		/*[Arima5908][43575[potingchang] 3rd source(Beil) touch driver porting]*/
-	    else if (FW_ID == 0x049f)
-		    file_fw_data = file_fw_data_Biel;
-		/*[Arima5908][43575][poting_chang] 20140904 end  */
+		    file_fw_data = file_fw_data_truly;
 	    else
 	    {
 		     printk("%s Normal Mode FW_ID identify error.\n",__func__);
@@ -2873,11 +2863,7 @@ static int elan_ktf2k_ts_probe(struct i2c_client *client,
 		if (file_fw_data == NULL)
 	    {
 		    printk("[ELAN]%s file_fw_data NULL.\n",__func__);
-/*[Arima5908][43575][poting_chang] 3rd source(Beil) touch driver porting 20140904 begin*/
-			#if 0
-			file_fw_data = file_fw_data_truly;
-			#endif
-/*[Arima5908][43575][poting_chang] 20140904 end  */
+		    file_fw_data = file_fw_data_truly;
 	    }
 	}
 	//[All][Main][TP][WI40169][thundertang] Add OFilm fw_data in Touch Screen driver. --
@@ -2948,9 +2934,9 @@ static int elan_ktf2k_ts_probe(struct i2c_client *client,
 	ts->firmware.mode = S_IFREG|S_IRWXUGO; 
 
 	if (misc_register(&ts->firmware) < 0)
-  		printk("[ELAN]misc_register failed!!\n");
+  		printk("[ELAN]misc_register failed!!");
   	else
-		printk("[ELAN]misc_register finished!!\n");
+		printk("[ELAN]misc_register finished!!");
 // End Firmware Update	
 
 
@@ -2958,15 +2944,12 @@ static int elan_ktf2k_ts_probe(struct i2c_client *client,
 #ifdef IAP_PORTION
 	if(1)
 	{
-    printk("[ELAN]misc_register finished!!\n");
+    printk("[ELAN]misc_register finished!!");
 		work_lock=1;
 		disable_irq(ts->client->irq);
 		cancel_work_sync(&ts->work);
 	
 		power_lock = 1;
-
-/*[Arima5908][43575][poting_chang] 3rd source(Beil) touch driver porting 20140904 begin*/
-	if(file_fw_data!=NULL){
 /* FW ID & FW VER*/
 #if 1  /* For ektf21xx and ektf20xx  */
     		printk("[ELAN]  [7d65]=0x%02x,  [7d64]=0x%02x, [0x7d67]=0x%02x, [0x7d66]=0x%02x\n",  file_fw_data[0x7d65],file_fw_data[0x7d64],file_fw_data[0x7d67],file_fw_data[0x7d66]);
@@ -2986,9 +2969,6 @@ static int elan_ktf2k_ts_probe(struct i2c_client *client,
 	  printk(" FW_ID=0x%x,   New_FW_ID=0x%x \n",  FW_ID, New_FW_ID);   	       
 		printk(" FW_VERSION=0x%x,   New_FW_VER=0x%x \n",  FW_VERSION  , New_FW_VER);  
 
-		}
-/*[Arima5908][43575][poting_chang] 20140904 end  */
-		
 // for firmware auto-upgrade            
 #if 0	//[All][Main][TP][WI40948][thundertang] Fixed FW_ID issue and Elan glove mode driver ++
 	  if (New_FW_ID   ==  FW_ID) //[All][Main][TP][WI40169][thundertang] Add OFilm fw_data in Touch Screen driver.
@@ -3024,14 +3004,9 @@ static int elan_ktf2k_ts_probe(struct i2c_client *client,
 			}
 		}
 		else
-		{    
-			/*[Arima5908][43575][poting_chang] 3rd source(Beil) touch driver porting 20140904 begin*/
-		     #if 0
+		{
 			printk("RECOVERY MODE Update FW One!");
-			
-		      Update_FW_One(client, RECOVERY);
-			#endif
-			/*[Arima5908][43575][poting_chang] 20140904 end  */
+			Update_FW_One(client, RECOVERY);
 		}		
 #endif	//[All][Main][TP][WI40948][thundertang] Fixed FW_ID issue and Elan glove mode driver --
 		
@@ -3142,21 +3117,20 @@ static int elan_ktf2k_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 /*[Arima5908][38972][bozhi_lin] 20140530 end  */
 	
 	mutex_lock(&private_ts->lock); //0430
-		
+	enable_irq_wake(client->irq);	
 	pr_info("[B]%s(%d): ", __func__, __LINE__);
 	if(power_lock==0) /* The power_lock can be removed when firmware upgrade procedure will not be enter into suspend mode.  */
 	{
 		printk(KERN_INFO "[elan] %s: enter\n", __func__);
-
-		disable_irq(client->irq);
-		#ifdef ESD_CHECK  //0430 --start
+		
+		//disable_irq(client->irq);
+		/*#ifdef ESD_CHECK  //0430 --start
     flush_work(&ts->work);  
 		cancel_delayed_work_sync(&ts->check_work); 
-		#endif //0430 --end
-		//rc = cancel_work_sync(&ts->work);
-		//if (rc)
-		//enable_irq(client->irq);
-
+		#endif //0430 --end*/
+		rc = cancel_work_sync(&ts->work);
+		if (rc)
+		enable_irq(client->irq);
 		rc = elan_ktf2k_ts_set_power_state(client, PWR_STATE_DEEP_SLEEP);
 	}
 	mutex_unlock(&private_ts->lock);  //0430
@@ -3174,6 +3148,7 @@ static int elan_ktf2k_ts_resume(struct i2c_client *client)
 {
 /*[Arima5908][38972][bozhi_lin] disable touch during call when display is off 20140530 begin*/
 	struct elan_ktf2k_ts_data *ts = i2c_get_clientdata(client);
+	disable_irq_wake(client->irq);
 /*[Arima5908][38972][bozhi_lin] 20140530 end  */
 // Roll back WI:7683: B[All][Main][TP][DMS05342323] Reduce time in TP resume API(Resume performance)  2014/05/21 begin 
 #if 0	
@@ -3244,7 +3219,7 @@ static int elan_ktf2k_ts_resume(struct i2c_client *client)
 		}			
 
 		schedule_delayed_work(&private_ts->check_work, msecs_to_jiffies(2500));	
-		enable_irq(client->irq);
+		
 	}
 	mutex_unlock(&private_ts->lock);
 	//0430 -- end
@@ -3319,5 +3294,4 @@ module_exit(elan_ktf2k_ts_exit);
 
 MODULE_DESCRIPTION("ELAN KTF2K Touchscreen Driver");
 MODULE_LICENSE("GPL");
-
 
