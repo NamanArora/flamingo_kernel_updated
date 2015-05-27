@@ -39,6 +39,12 @@ static struct work_struct work_vibrator_on;
 static struct work_struct work_vibrator_off;
 static struct hrtimer vibe_timer;
 
+int _vibrate(int time)
+{
+    vibrator_enable(&pmic_vibrator, time);
+    return 0;
+}
+
 #ifdef CONFIG_PM8XXX_RPC_VIBRATOR
 static void set_pmic_vibrator(int on)
 {

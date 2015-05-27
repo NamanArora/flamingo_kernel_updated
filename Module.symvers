@@ -551,6 +551,7 @@
 0x8a35d571	nf_ct_invert_tuple	vmlinux	EXPORT_SYMBOL_GPL
 0xa61aa028	snd_pcm_format_unsigned	vmlinux	EXPORT_SYMBOL
 0x9305f8e6	cpufreq_get	vmlinux	EXPORT_SYMBOL
+0x0d8bfcfd	himax_s2w_setinp	vmlinux	EXPORT_SYMBOL
 0x08949fae	usbnet_stop	vmlinux	EXPORT_SYMBOL_GPL
 0xa9252131	fat_sync_inode	vmlinux	EXPORT_SYMBOL_GPL
 0x109854fa	clear_bdi_congested	vmlinux	EXPORT_SYMBOL

@@ -52,7 +52,7 @@
 #include <linux/miscdevice.h>
 #include <linux/regulator/consumer.h>
 #include <linux/of_gpio.h>
-
+#include<mach/msm_vibrator.h>
 // for linux 2.6.36.3
 #include <linux/cdev.h>
 #include <linux/slab.h>
@@ -217,6 +217,12 @@ enum
 	E_FD			= -1,
 };
 #endif
+static DEFINE_MUTEX(s2w_lock);
+static struct input_dev * sweep2wake_pwrdev;
+extern void himax_s2w_setinp(struct input_dev *dev) {
+	sweep2wake_pwrdev = dev;
+}
+EXPORT_SYMBOL(himax_s2w_setinp);
 struct elan_ktf2k_ts_data {
 	struct i2c_client *client;
 	struct input_dev *input_dev;
@@ -244,9 +250,48 @@ struct elan_ktf2k_ts_data {
 	int elan_is_suspend;
 #endif
 /*[Arima5908][38972][bozhi_lin] 20140530 end  */
+
+
+//Gesture variables
+
+int h2w_used;
+	int counter;
+	int screen_status;
+	int inside_pocket;
+	int delta;
+	int old_x;
+	int old_y;
+	int back;
+	int menu;
+	int cage;
+	int flick;
+	int xlock;
+	int ylock;
+	unsigned long timeout;
 };
 
 static struct elan_ktf2k_ts_data *private_ts;
+
+int getstate()
+{
+ return private_ts->screen_status;
+}
+void enable_again()
+{
+private_ts->timeout=jiffies+HZ/15;
+private_ts->xlock=0;
+private_ts->ylock=0;
+private_ts->flick=1;
+private_ts->cage=0;
+private_ts->back=0;
+private_ts->menu=0;
+private_ts->delta=0;
+private_ts->old_x=0;
+private_ts->old_y=0;
+private_ts->counter=0;
+private_ts->h2w_used = 1;
+}
+
 static int __fw_packet_handler(struct i2c_client *client);
 static int elan_ktf2k_ts_hw_reset(struct i2c_client *client);
 static int elan_ktf2k_ts_rough_calibrate(struct i2c_client *client);
@@ -2188,6 +2233,48 @@ static int elan_ktf2k_ts_recv_data(struct i2c_client *client, uint8_t *buf, int 
 	return rc;
 }
 
+void himax_s2w_power(struct work_struct *himax_s2w_power_work) {
+//need to clear junk before power on
+	if (!mutex_trylock(&s2w_lock))
+        return;
+	input_event(sweep2wake_pwrdev, EV_KEY, KEY_POWER, 1);
+	input_event(sweep2wake_pwrdev, EV_SYN, 0, 0);
+	msleep(100);
+	input_event(sweep2wake_pwrdev, EV_KEY, KEY_POWER, 0);
+	input_event(sweep2wake_pwrdev, EV_SYN, 0, 0);
+	msleep(100);
+	printk(KERN_INFO "[touch][TS][S2W]%s: Turn it on", __func__);
+	mutex_unlock(&s2w_lock);
+
+}
+static DECLARE_WORK(himax_s2w_power_work, himax_s2w_power);
+
+void s2wfunc(void)
+ {
+
+ 	mutex_lock(&s2w_lock);
+ 	schedule_work(&himax_s2w_power_work);
+
+ }
+void flick(int y)
+{
+printk(KERN_INFO "[touch] Inside flick func()"); 
+if(!private_ts->cage)
+{
+printk(KERN_INFO "[touch] cage opened"); 
+private_ts->old_y=y;
+private_ts->cage=1;
+}
+private_ts->delta= abs(y- private_ts->old_y);
+if(private_ts->delta>400 && private_ts->flick) //still have to add pocket detection.
+{
+printk(KERN_INFO "[touch] Flick2wake incoming!");
+private_ts->flick=0;
+//_vibrate(30);
+s2wfunc();
+}
+}
+
 static void elan_ktf2k_ts_report_data(struct i2c_client *client, uint8_t *buf)
 {
 	struct elan_ktf2k_ts_data *ts = i2c_get_clientdata(client);
@@ -2230,48 +2317,9 @@ static void elan_ktf2k_ts_report_data(struct i2c_client *client, uint8_t *buf)
     	case FIVE_FINGERS_PKT:	
 	case TEN_FINGERS_PKT:
 		input_report_key(idev, BTN_TOUCH, 1);
-			if (num == 0) {
-#ifdef ELAN_BUTTON
-				if (buf[btn_idx] == 0x21) 
-        {
-						button_state = 0x21;
-						input_report_key(idev, KEY_BACK, 1);
-						input_report_key(idev, KEY_BACK, 0);
-printk("[elan_debug] button %x \n", buf[btn_idx]);
-				} 
-				else if (buf[btn_idx] == 0x41)
-				{
-						button_state = 0x41;
-						input_report_key(idev, KEY_HOME, 1);
-				} 
-				else if (buf[btn_idx] == 0x81)
-				{
-						button_state = 0x81;
-						input_report_key(idev, KEY_MENU, 1);
-				} 
-				else if (button_state == 0x21) 
-				{
-						button_state=0;
-						input_report_key(idev, KEY_BACK, 0);
-		    } 
-				else if (button_state == 0x41) 
-				{
-						button_state=0;
-						input_report_key(idev, KEY_HOME, 0);
-				} 
-				else if (button_state == 0x81) 
-				{
-						button_state=0;
-						input_report_key(idev, KEY_MENU, 0);
-				}
-				else
-				{
-				dev_dbg(&client->dev, "no press\n");
-				input_mt_sync(idev);
-
-				}
-				
-#endif	
+			if (num == 0) { //The no finger loop
+					printk(KERN_INFO "[touch] no finger"); 
+					enable_again();
 			} else {			
 				dev_dbg(&client->dev, "[elan] %d fingers\n", num);                        
 				input_report_key(idev, BTN_TOUCH, 1);
@@ -2283,6 +2331,10 @@ printk("[elan_debug] button %x \n", buf[btn_idx]);
 			    //x = X_RESOLUTION-x;	 
 			    //y = Y_RESOLUTION-y;			 
 				printk(KERN_INFO "[touch] x=%d y=%d", x,y);    
+				if(!getstate())
+				{
+					flick(y);
+				}
 						if (!((x<=0) || (y<=0) || (x>=X_RESOLUTION) || (y>=Y_RESOLUTION))) {   
     					input_report_abs(idev, ABS_MT_TRACKING_ID, i);
 							input_report_abs(idev, ABS_MT_TOUCH_MAJOR, 8);
@@ -2297,14 +2349,19 @@ printk("[elan_debug] button %x \n", buf[btn_idx]);
 			  	idx += 3;
 				} // end for
 			}
-			if (reported)
+			if (reported) //Always runs after touch detected
+				{ 
+				printk(KERN_INFO "[touch] reported loop"); 
 				input_sync(idev);
-			else {
+				}			
+					
+				else {
 				input_mt_sync(idev);
 				input_sync(idev);
-			}
+				}
 			break;
-		case 0x78:		
+		case 0x78:	//When screen is idle, this keeps running
+				printk(KERN_INFO "[touch] case 078"); 	
 			//	Disable ESD log( unknown packet type: 78)
 			break;
 			
@@ -3104,6 +3161,8 @@ static int elan_ktf2k_ts_remove(struct i2c_client *client)
 
 static int elan_ktf2k_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 {
+printk(KERN_INFO "[touch] Suspend enter"); 
+private_ts->screen_status=0;
 	struct elan_ktf2k_ts_data *ts = i2c_get_clientdata(client);
 	int rc = 0;
 
@@ -3146,6 +3205,8 @@ static int elan_ktf2k_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 
 static int elan_ktf2k_ts_resume(struct i2c_client *client)
 {
+printk(KERN_INFO "[touch]Resume enter"); 
+private_ts->screen_status=1;
 /*[Arima5908][38972][bozhi_lin] disable touch during call when display is off 20140530 begin*/
 	struct elan_ktf2k_ts_data *ts = i2c_get_clientdata(client);
 	disable_irq_wake(client->irq);
