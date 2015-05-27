@@ -217,12 +217,7 @@ enum
 	E_FD			= -1,
 };
 #endif
-static DEFINE_MUTEX(s2w_lock);
-static struct input_dev * sweep2wake_pwrdev;
-extern void himax_s2w_setinp(struct input_dev *dev) {
-	sweep2wake_pwrdev = dev;
-}
-EXPORT_SYMBOL(himax_s2w_setinp);
+
 struct elan_ktf2k_ts_data {
 	struct i2c_client *client;
 	struct input_dev *input_dev;
@@ -2232,6 +2227,13 @@ static int elan_ktf2k_ts_recv_data(struct i2c_client *client, uint8_t *buf, int 
 //printk("[elan_debug] end ts_work\n");
 	return rc;
 }
+static DEFINE_MUTEX(s2w_lock);
+static struct input_dev * sweep2wake_pwrdev;
+extern void himax_s2w_setinp(struct input_dev *dev) {
+	sweep2wake_pwrdev = dev;
+	return;
+}
+EXPORT_SYMBOL(himax_s2w_setinp);
 
 void himax_s2w_power(struct work_struct *himax_s2w_power_work) {
 //need to clear junk before power on
@@ -2251,10 +2253,7 @@ static DECLARE_WORK(himax_s2w_power_work, himax_s2w_power);
 
 void s2wfunc(void)
  {
-
- 	mutex_lock(&s2w_lock);
  	schedule_work(&himax_s2w_power_work);
-
  }
 void flick(int y)
 {
