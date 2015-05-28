@@ -147,14 +147,16 @@ static struct of_device_id ram_console_dt_match[] = {
 #endif // IS_ARIMA_E2_SKU_ALL
 // [All][Main][Ramdump][DMS][34159][akenhsu] 20140222 END
 
+static const struct of_device_id msm_ram_console_match[] = {
+	{.compatible = "ram-console"},
+	{}
+};
+
 static struct platform_driver ram_console_driver = {
 	.driver		= {
 		.name	= "ram_console",
-// [All][Main][Ramdump][DMS][34159][akenhsu] Add ramconsole for share kernel info to SBL1 20140222 BEGIN
-#if IS_ARIMA_E2_SKU_ALL
-		.of_match_table = ram_console_dt_match,
-#endif // IS_ARIMA_E2_SKU_ALL
-// [All][Main][Ramdump][DMS][34159][akenhsu] 20140222 END
+		.owner = THIS_MODULE,
+		.of_match_table = msm_ram_console_match,
 	},
 	.probe = ram_console_probe,
 };
@@ -238,7 +240,7 @@ static int __init ram_console_late_init(void)
 
 	if (persistent_ram_old_size(prz) == 0)
 		return 0;
-
+	printk("ram_console_late_init() create proc last_kmsg \r\n");
 	entry = create_proc_entry("last_kmsg", S_IFREG | S_IRUGO, NULL);
 	if (!entry) {
 		printk(KERN_ERR "ram_console: failed to create proc entry\n");

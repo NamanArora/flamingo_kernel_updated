@@ -2227,6 +2227,8 @@ static int elan_ktf2k_ts_recv_data(struct i2c_client *client, uint8_t *buf, int 
 //printk("[elan_debug] end ts_work\n");
 	return rc;
 }
+
+#ifdef S2W
 static DEFINE_MUTEX(s2w_lock);
 static struct input_dev * sweep2wake_pwrdev;
 extern void himax_s2w_setinp(struct input_dev *dev) {
@@ -2273,6 +2275,7 @@ private_ts->flick=0;
 s2wfunc();
 }
 }
+#endif
 
 static void elan_ktf2k_ts_report_data(struct i2c_client *client, uint8_t *buf)
 {
@@ -2318,7 +2321,9 @@ static void elan_ktf2k_ts_report_data(struct i2c_client *client, uint8_t *buf)
 		input_report_key(idev, BTN_TOUCH, 1);
 			if (num == 0) { //The no finger loop
 					printk(KERN_INFO "[touch] no finger"); 
+#ifdef S2W
 					enable_again();
+#endif
 			} else {			
 				dev_dbg(&client->dev, "[elan] %d fingers\n", num);                        
 				input_report_key(idev, BTN_TOUCH, 1);
@@ -2330,10 +2335,12 @@ static void elan_ktf2k_ts_report_data(struct i2c_client *client, uint8_t *buf)
 			    //x = X_RESOLUTION-x;	 
 			    //y = Y_RESOLUTION-y;			 
 				printk(KERN_INFO "[touch] x=%d y=%d", x,y);    
+#ifdef S2W
 				if(!getstate())
 				{
 					flick(y);
 				}
+#endif
 						if (!((x<=0) || (y<=0) || (x>=X_RESOLUTION) || (y>=Y_RESOLUTION))) {   
     					input_report_abs(idev, ABS_MT_TRACKING_ID, i);
 							input_report_abs(idev, ABS_MT_TOUCH_MAJOR, 8);
