@@ -3182,7 +3182,9 @@ private_ts->screen_status=0;
 /*[Arima5908][38972][bozhi_lin] 20140530 end  */
 	
 	mutex_lock(&private_ts->lock); //0430
+	#ifdef S2W
 	enable_irq_wake(client->irq);	
+	#endif
 	pr_info("[B]%s(%d): ", __func__, __LINE__);
 	if(power_lock==0) /* The power_lock can be removed when firmware upgrade procedure will not be enter into suspend mode.  */
 	{
@@ -3193,9 +3195,11 @@ private_ts->screen_status=0;
     flush_work(&ts->work);  
 		cancel_delayed_work_sync(&ts->check_work); 
 		#endif //0430 --end*/
+		#ifdef S2W
 		rc = cancel_work_sync(&ts->work);
 		if (rc)
 		enable_irq(client->irq);
+		#endif
 		rc = elan_ktf2k_ts_set_power_state(client, PWR_STATE_DEEP_SLEEP);
 	}
 	mutex_unlock(&private_ts->lock);  //0430
@@ -3215,7 +3219,9 @@ printk(KERN_INFO "[touch]Resume enter");
 private_ts->screen_status=1;
 /*[Arima5908][38972][bozhi_lin] disable touch during call when display is off 20140530 begin*/
 	struct elan_ktf2k_ts_data *ts = i2c_get_clientdata(client);
+	#ifdef S2W
 	disable_irq_wake(client->irq);
+	#endif
 /*[Arima5908][38972][bozhi_lin] 20140530 end  */
 // Roll back WI:7683: B[All][Main][TP][DMS05342323] Reduce time in TP resume API(Resume performance)  2014/05/21 begin 
 #if 0	
@@ -3286,7 +3292,9 @@ private_ts->screen_status=1;
 		}			
 
 		schedule_delayed_work(&private_ts->check_work, msecs_to_jiffies(2500));	
-		
+		#ifndef S2W
+		enable_irq(client->irq);
+		#endif
 	}
 	mutex_unlock(&private_ts->lock);
 	//0430 -- end
