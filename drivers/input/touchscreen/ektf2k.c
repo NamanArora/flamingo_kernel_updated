@@ -38,7 +38,7 @@
 //#define RE_CALIBRATION		/* The Re-Calibration was designed for ektf3k serial. */
 //#define ELAN_2WIREICE
 //#define ELAN_POWER_SOURCE
-
+#define S2W
 #include <linux/module.h>
 #include <linux/input.h>
 #include <linux/interrupt.h>
@@ -2231,11 +2231,6 @@ static int elan_ktf2k_ts_recv_data(struct i2c_client *client, uint8_t *buf, int 
 #ifdef S2W
 static DEFINE_MUTEX(s2w_lock);
 static struct input_dev * sweep2wake_pwrdev;
-extern void himax_s2w_setinp(struct input_dev *dev) {
-	sweep2wake_pwrdev = dev;
-	return;
-}
-EXPORT_SYMBOL(himax_s2w_setinp);
 
 void himax_s2w_power(struct work_struct *himax_s2w_power_work) {
 //need to clear junk before power on
@@ -3355,6 +3350,17 @@ static struct i2c_driver ektf2k_ts_driver = {
 static int __devinit elan_ktf2k_ts_init(void)
 {
 	printk(KERN_INFO "[elan] %s driver version 0x0005: Integrated 2, 5, and 10 fingers together and auto-mapping resolution\n", __func__);
+
+int rc = 0;
+
+	sweep2wake_pwrdev = input_allocate_device();
+
+	input_set_capability(sweep2wake_pwrdev, EV_KEY, KEY_POWER);
+	sweep2wake_pwrdev->name = "s2w_pwrkey";
+	sweep2wake_pwrdev->phys = "s2w_pwrkey/input0";
+
+	rc = input_register_device(sweep2wake_pwrdev);
+
 	return i2c_add_driver(&ektf2k_ts_driver);
 }
 
