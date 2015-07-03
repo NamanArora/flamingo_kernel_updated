@@ -38,7 +38,7 @@
 //#define RE_CALIBRATION		/* The Re-Calibration was designed for ektf3k serial. */
 //#define ELAN_2WIREICE
 //#define ELAN_POWER_SOURCE
-// #define S2W
+#define S2W
 #include <linux/module.h>
 #include <linux/input.h>
 #include <linux/interrupt.h>
