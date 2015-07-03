@@ -3350,7 +3350,7 @@ static struct i2c_driver ektf2k_ts_driver = {
 static int __devinit elan_ktf2k_ts_init(void)
 {
 	printk(KERN_INFO "[elan] %s driver version 0x0005: Integrated 2, 5, and 10 fingers together and auto-mapping resolution\n", __func__);
-
+#ifdef S2W
 int rc = 0;
 
 	sweep2wake_pwrdev = input_allocate_device();
@@ -3360,7 +3360,7 @@ int rc = 0;
 	sweep2wake_pwrdev->phys = "s2w_pwrkey/input0";
 
 	rc = input_register_device(sweep2wake_pwrdev);
-
+#endif
 	return i2c_add_driver(&ektf2k_ts_driver);
 }
 
