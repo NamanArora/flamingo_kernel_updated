@@ -4,7 +4,8 @@
 *.obj
 *.elf
 *.cmd
-
+Makefile
+.version
 # Precompiled Headers
 *.gch
 *.pch
