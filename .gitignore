@@ -9,7 +9,10 @@ Makefile
 # Precompiled Headers
 *.gch
 *.pch
-
+*.patch
+*.rej
+*.orig
+include/config/
 # Libraries
 *.lib
 *.a
