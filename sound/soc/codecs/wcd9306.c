@@ -3237,7 +3237,7 @@ static int tapan_volatile(struct snd_soc_codec *ssc, unsigned int reg)
 }
 
 #define TAPAN_FORMATS (SNDRV_PCM_FMTBIT_S16_LE)
-<<<<<<< HEAD
+
 #define TAPAN_FORMATS_S16_S24_LE (SNDRV_PCM_FMTBIT_S16_LE | \
 				  SNDRV_PCM_FORMAT_S24_LE)
 static int tapan_write(struct snd_soc_codec *codec, unsigned int reg,
@@ -3245,8 +3245,6 @@ static int tapan_write(struct snd_soc_codec *codec, unsigned int reg,
 {
 	int ret;
 	struct wcd9xxx *wcd9xxx = codec->control_data;
-=======
->>>>>>> 2ea51ea... Sound Control 3.2: Initial Port to MSM8226 Socs
 
 #ifdef CONFIG_SOUND_CONTROL_HAX_3_GPL
 extern int snd_hax_reg_access(unsigned int);
