@@ -10,7 +10,7 @@
  *
  *  v1.2 - make kernel / userspace mode switchable
  *
- *  v1.3 - add a hook in display pannel driver as alternative kernel trigger
+ *  v1.3 - add a hook in display panel driver as alternative kernel trigger
  *
  *  v1.4 - add a hybrid-kernel mode, accepting both kernel hooks (first wins)
  *
@@ -170,13 +170,13 @@ void set_power_suspend_state_autosleep_hook(int new_state)
 
 EXPORT_SYMBOL(set_power_suspend_state_autosleep_hook);
 
-void set_power_suspend_state_pannel_hook(int new_state)
+void set_power_suspend_state_panel_hook(int new_state)
 {
 	if (mode == POWER_SUSPEND_PANEL || mode == POWER_SUSPEND_HYBRID)
 		set_power_suspend_state(new_state);
 }
 
-EXPORT_SYMBOL(set_power_suspend_state_pannel_hook);
+EXPORT_SYMBOL(set_power_suspend_state_panel_hook);
 
 // ------------------------------------------ sysfs interface ------------------------------------------
 
@@ -226,7 +226,7 @@ static ssize_t power_suspend_mode_store(struct kobject *kobj,
 
 	switch (data) {
 		case POWER_SUSPEND_AUTOSLEEP:
-		case POWER_SUSPEND_PANNEL:
+		case POWER_SUSPEND_PANEL:
 		case POWER_SUSPEND_USERSPACE:
 		case POWER_SUSPEND_HYBRID:	mode = data;
 						return count;
