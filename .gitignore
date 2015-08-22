@@ -2,6 +2,10 @@
 *.o
 *.ko
 *.obj
+*.release
+*.cmd
+
+*~
 *.elf
 *.cmd
 Makefile
