@@ -193,7 +193,7 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 
 ARCH		?= arm
-CROSS_COMPILE	?= /home/naman/Desktop/toolchain/sabermod/arm-linux-androideabi-4.9/bin/arm-linux-androideabi-
+CROSS_COMPILE	?= /home/naman/Desktop/toolchain/arm-eabi-4.8-sabermod/bin/arm-eabi-
 
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
@@ -372,29 +372,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -fno-delete-null-pointer-checks \
-		   -ffast-math \
-		   -ffast-math \
-		   -DNDEBUG -funsafe-loop-optimizations \
-		   -fsection-anchors \
-		   -fivopts \
-		   -ftree-loop-im \
-		   -ftree-loop-ivcanon \
-		   -ffunction-sections \
-		   -fdata-sections \
-		   -funswitch-loops \
-		   -frename-registers \
-		   -frerun-cse-after-loop \
-		   -fomit-frame-pointer \
-		   -fgcse-after-reload \
-		   -fgcse-sm \
-		   -fgcse-las \
-		   -fweb \
-		   -ftracer \
-		   -Wno-error=strict-aliasing \
-		   -Wno-error=unused-parameter \
-		   -Wno-error=unused-but-set-variable \
-		   -Wno-error=maybe-uninitialized
+		   -fno-delete-null-pointer-checks 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
@@ -686,7 +664,7 @@ endif
 
 # Use --build-id when available.
 LDFLAGS_BUILD_ID = $(patsubst -Wl$(comma)%,%,\
-$(call cc-ldoption, -Wl$(comma)--build-id,)) -Wl,-O1 -Wl,--as-needed -Wl,--relax -Wl,--sort-common -Wl,--gc-sections
+$(call cc-ldoption, -Wl $(comma)--build-id,))
 KBUILD_LDFLAGS_MODULE += $(LDFLAGS_BUILD_ID)
 LDFLAGS_vmlinux += $(LDFLAGS_BUILD_ID)
 
