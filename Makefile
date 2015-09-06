@@ -193,7 +193,7 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 
 ARCH		?= arm
-CROSS_COMPILE	?= /home/naman/Desktop/arm-linux-gnueabi-linaro_4.9.1-2014.05/bin/arm-eabi-
+CROSS_COMPILE	?= /home/naman/Desktop/toolchain/sabermod/arm-linux-androideabi-4.9/bin/arm-linux-androideabi-
 
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
@@ -357,7 +357,7 @@ LDFLAGS_MODULE  =
 CFLAGS_KERNEL	= -w
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
-
+GRAPHITE_FLAGS  = -fgraphite -floop-parallelize-all -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block -floop-flatten
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
@@ -372,7 +372,29 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -fno-delete-null-pointer-checks
+		   -fno-delete-null-pointer-checks \
+		   -ffast-math \
+		   -ffast-math \
+		   -DNDEBUG -funsafe-loop-optimizations \
+		   -fsection-anchors \
+		   -fivopts \
+		   -ftree-loop-im \
+		   -ftree-loop-ivcanon \
+		   -ffunction-sections \
+		   -fdata-sections \
+		   -funswitch-loops \
+		   -frename-registers \
+		   -frerun-cse-after-loop \
+		   -fomit-frame-pointer \
+		   -fgcse-after-reload \
+		   -fgcse-sm \
+		   -fgcse-las \
+		   -fweb \
+		   -ftracer \
+		   -Wno-error=strict-aliasing \
+		   -Wno-error=unused-parameter \
+		   -Wno-error=unused-but-set-variable \
+		   -Wno-error=maybe-uninitialized
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
@@ -563,7 +585,7 @@ endif # $(dot-config)
 all: vmlinux
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
+KBUILD_CFLAGS	+= -O3 
 else
 KBUILD_CFLAGS	+= -O2
 endif
@@ -664,7 +686,7 @@ endif
 
 # Use --build-id when available.
 LDFLAGS_BUILD_ID = $(patsubst -Wl$(comma)%,%,\
-			      $(call cc-ldoption, -Wl$(comma)--build-id,))
+$(call cc-ldoption, -Wl$(comma)--build-id,)) -Wl,-O1 -Wl,--as-needed -Wl,--relax -Wl,--sort-common -Wl,--gc-sections
 KBUILD_LDFLAGS_MODULE += $(LDFLAGS_BUILD_ID)
 LDFLAGS_vmlinux += $(LDFLAGS_BUILD_ID)
 
